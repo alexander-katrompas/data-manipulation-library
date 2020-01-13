@@ -1,2 +1,2 @@
-# data-manipulation-library
+# Data Manipulation Library
 For Numpy arrays and Pandas DataFrames
