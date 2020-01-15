@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 np.set_printoptions(precision=4, floatmode="fixed")
 
-DEFAULT_TRAIN_PCT = 80
+DEFAULT_TRAIN_PCT = 80.0
 
 def detect_datatype(data):
     """
@@ -32,10 +32,10 @@ def normalize(dataset, np_array=False, scaled=False):
     """
     # ensure floats
     dataset = dataset.astype(float)
-    
+
     # normalize
     [dataset[col].update((dataset[col] - dataset[col].min()) / (dataset[col].max() - dataset[col].min())) for col in dataset.columns]
-    
+
     # scale if needed
     if scaled:
         [dataset[col].update((dataset[col] / .5)-1) for col in dataset.columns]
@@ -59,12 +59,12 @@ def getio(data, x_cols):
     
     if (x_cols > 0 and x_cols < total_cols):
         if detect_datatype(data) == DataType.NUMPY:
-            X = data[:,:x_cols]
+            X = data[:, :x_cols]
             Y = data[:, x_cols:]
         elif detect_datatype(data) == DataType.DATAFRAME:
             # left of the , ommitting start and stop gives "all rows"
             # right of the , ommitting start and including number of columns
-            X = data.iloc[:,:x_cols]
+            X = data.iloc[:, :x_cols]
             Y = data.iloc[:, x_cols:]
 
     return X, Y
@@ -95,8 +95,8 @@ def split_dataset(data, train_pct=DEFAULT_TRAIN_PCT, random=False):
 
     # ensure train_pct is in range and convert to percent or default to .8
     try:
-        train_pct = int(train_pct)
-        if 0 < train_pct < 100:
+        train_pct = float(train_pct)
+        if 0.0 < train_pct < 100.0:
             train_pct = float(train_pct) / 100.0
         else:
             train_pct = float(DEFAULT_TRAIN_PCT) / 100.0
@@ -114,7 +114,7 @@ def split_dataset(data, train_pct=DEFAULT_TRAIN_PCT, random=False):
             # split numpy array
             rows = data.shape[0]
             train_rows = int(rows * train_pct)
-            train_data, test_data = data[:train_rows,:], data[train_rows:,:]
+            train_data, test_data = data[:train_rows, :], data[train_rows:, :]
         
     elif detect_datatype(data) == DataType.DATAFRAME:
         # this violates PEP 8 and slows the function,
@@ -161,14 +161,14 @@ def make_timeseries(data, out_cols=None, lag=1, fill=False):
         out_data = data[:, out_cols]
         
         #created data to insert for shift
-        insert_data = np.empty((lag, column_count(data),))
+        insert_data = np.empty((lag, column_count(data), ))
         insert_data[:] = np.NaN
         
         # add insert data to top
         data = np.insert(data, 0, insert_data, axis=0)
         
         #remove bottom of data
-        data = data[:data.shape[0]-lag,:]
+        data = data[:data.shape[0]-lag, :]
         
         # put them together
         data = np.concatenate((data, out_data), axis=1)
@@ -191,4 +191,30 @@ def make_timeseries(data, out_cols=None, lag=1, fill=False):
         if fill: data.fillna(0, inplace=True)
     
     return data
+
+def getColNames(data):
+    col_names = []
+    if detect_datatype(data) == DataType.NUMPY:
+        col_names = list(map(str, list(range(0, column_count(data)))))
+    elif detect_datatype(data) == DataType.DATAFRAME:
+        col_names = list(map(str, data.columns))
+    return col_names
+
+def getMinMax(data):
+    minmax = [[], []]
+    if detect_datatype(data) == DataType.NUMPY:
+        minmax[0] = np.amin(data, axis=0)
+        minmax[1] = np.amax(data, axis=0)
+    elif detect_datatype(data) == DataType.DATAFRAME:
+        minmax = data.agg([min, max]).to_numpy()
+    return minmax
+
+def getStdev(data):
+    stdev = []
+    if detect_datatype(data) == DataType.NUMPY:
+        stdev = np.nanstd(data, axis=0)
+    elif detect_datatype(data) == DataType.DATAFRAME:
+        #minmax = data.agg([min, max]).to_numpy()
+        stdev = list(data.std(axis=0, skipna=True))
+    return stdev
 
