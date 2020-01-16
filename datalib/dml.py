@@ -26,25 +26,42 @@ def detect_datatype(data):
 
 def normalize(dataset, np_array=False, scaled=False):
     """
-    Parameters: Pandas DataFrame, optional np_array for return type, optional scale flag
-    Processing: Will normalize and optionally scale a dataset
+    Parameters: Pandas DataFrame or Numby,
+                optional np_array flag for return type, optional scale flag
+    Processing: Will normalize and optionally scale the dataset
     Return: Pandas DataFrame or Numpy array with normalized/scaled data
     """
     # ensure floats
     dataset = dataset.astype(float)
-
-    # normalize
-    [dataset[col].update((dataset[col] - dataset[col].min()) / (dataset[col].max() - dataset[col].min())) for col in dataset.columns]
-
-    # scale if needed
-    if scaled:
-        [dataset[col].update((dataset[col] / .5)-1) for col in dataset.columns]
+    
+    if detect_datatype(dataset) == DataType.NUMPY:
+        print("processing numpy")
+        # set-up normalization
+        high = 1.0
+        low = 0.0
+        mins = np.min(dataset, axis=0)
+        maxs = np.max(dataset, axis=0)
+        rng = maxs - mins
+        # normalize
+        dataset = high - (((high - low) * (maxs - dataset)) / rng)
+        # scale if needed
+        if scaled:
+            dataset = (dataset / .5) - 1
+    elif detect_datatype(dataset) == DataType.DATAFRAME:
+        print("processing dataframe")
+        # normalize
+        [dataset[col].update((dataset[col] - dataset[col].min()) / (dataset[col].max() - dataset[col].min())) for col in dataset.columns]
+        # scale if needed
+        if scaled:
+            [dataset[col].update((dataset[col] / .5)-1) for col in dataset.columns]
     
     # return appropriate object
-    if np_array:
-        return dataset.to_numpy()
-    else:
-        return dataset
+    if np_array and detect_datatype(dataset) == DataType.DATAFRAME:
+        dataset = dataset.to_numpy()
+    elif not np_array and detect_datatype(dataset) == DataType.NUMPY:
+        dataset = pd.DataFrame(dataset)
+    
+    return dataset
 
 def getio(data, x_cols):
     """
@@ -75,12 +92,14 @@ def column_count(data):
     Processing: Will count columns
     Return: Number of columns
     """
+    column_count = 0
+    
     if detect_datatype(data) == DataType.NUMPY:
-        return len(data[0])
+        column_count = len(data[0])
     elif detect_datatype(data) == DataType.DATAFRAME:
-        return len(data.columns)
-    else:
-        return 0
+        column_count = len(data.columns)
+
+    return column_count
 
 def split_dataset(data, train_pct=DEFAULT_TRAIN_PCT, random=False):
     """
