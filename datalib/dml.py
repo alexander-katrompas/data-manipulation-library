@@ -35,7 +35,6 @@ def normalize(dataset, np_array=False, scaled=False):
     dataset = dataset.astype(float)
     
     if detect_datatype(dataset) == DataType.NUMPY:
-        print("processing numpy")
         # set-up normalization
         high = 1.0
         low = 0.0
@@ -48,7 +47,6 @@ def normalize(dataset, np_array=False, scaled=False):
         if scaled:
             dataset = (dataset / .5) - 1
     elif detect_datatype(dataset) == DataType.DATAFRAME:
-        print("processing dataframe")
         # normalize
         [dataset[col].update((dataset[col] - dataset[col].min()) / (dataset[col].max() - dataset[col].min())) for col in dataset.columns]
         # scale if needed
