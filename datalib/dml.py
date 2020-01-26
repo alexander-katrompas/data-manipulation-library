@@ -26,7 +26,7 @@ def detect_datatype(data):
 
 def normalize(dataset, np_array=False, scaled=False):
     """
-    Parameters: Pandas DataFrame or Numby,
+    Parameters: Pandas DataFrame or Numpy,
                 optional np_array flag for return type, optional scale flag
     Processing: Will normalize and optionally scale the dataset
     Return: Pandas DataFrame or Numpy array with normalized/scaled data
