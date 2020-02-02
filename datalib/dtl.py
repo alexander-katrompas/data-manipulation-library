@@ -1,7 +1,7 @@
 """
 Author: Alex Katrompas
 
-Data Type Library
+Data Types for use with dml
 """
 
 from enum import Enum
