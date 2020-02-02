@@ -212,6 +212,7 @@ def make_timeseries(data, out_cols=None, lag=1, fill=False):
 def getColNames(data):
     col_names = []
     if detect_datatype(data) == DataType.NUMPY:
+        # "labels" columns 0,1,2, etc
         col_names = list(map(str, list(range(0, column_count(data)))))
     elif detect_datatype(data) == DataType.DATAFRAME:
         col_names = list(map(str, data.columns))
