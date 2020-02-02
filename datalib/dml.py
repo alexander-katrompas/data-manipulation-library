@@ -4,6 +4,7 @@ Author: Alex Katrompas
 Data Manipulation Library
 For numpy arrays and pandas dataframes.
 For use with machine learning and data science applications.
+
 """
 
 from dtl import DataType
