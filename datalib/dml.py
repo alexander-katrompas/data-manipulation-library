@@ -13,16 +13,11 @@ np.set_printoptions(precision=4, floatmode="fixed")
 
 DEFAULT_TRAIN_PCT = 80.0
 
-def detect_datatype(data):
-    """
-    Parameters: Pandas DataFrame or Numpy array
-    Processing: Detect type of Numpy or DataFrame type
-    Return: DataType constant
-    """
-    if type(data) == type(np.empty(0)):
-        return DataType.NUMPY
-    elif type(data) == type(pd.DataFrame({'A': []})):
-        return DataType.DATAFRAME
+# #############################################
+# MANIPULATION FUNCTIONS
+# These functions restructure the data
+# in some way and return the manipulated data
+# #############################################
 
 def normalize(dataset, np_array=False, scaled=False):
     """
@@ -84,21 +79,6 @@ def getio(data, x_cols):
 
     return X, Y
 
-def column_count(data):
-    """
-    Parameters: Pandas DataFrame or Numpy array
-    Processing: Will count columns
-    Return: Number of columns
-    """
-    column_count = 0
-    
-    if detect_datatype(data) == DataType.NUMPY:
-        column_count = len(data[0])
-    elif detect_datatype(data) == DataType.DATAFRAME:
-        column_count = len(data.columns)
-
-    return column_count
-
 def split_dataset(data, train_pct=DEFAULT_TRAIN_PCT, random=False):
     """
     Parameters: Pandas DataFrame or Numpy array, percent of train data,
@@ -150,7 +130,7 @@ def make_timeseries(data, out_cols=None, lag=1, fill=False):
     Parameters: Pandas DataFrame or Numpy array, list of cols to extract,
                 lag between I/O, fill data
     Processing: pull out output cols, shift them, append them back to the dataset
-    Return: Dataset with ime shifted output
+    Return: Dataset with time shifted output
     """
     
     num_columns = column_count(data)
@@ -208,6 +188,38 @@ def make_timeseries(data, out_cols=None, lag=1, fill=False):
         if fill: data.fillna(0, inplace=True)
     
     return data
+
+
+# #############################################
+# INFORMATIONAL FUNCTIONS 
+# These functions report on data and metadata
+# #############################################
+
+def detect_datatype(data):
+    """
+    Parameters: Pandas DataFrame or Numpy array
+    Processing: Detect type of Numpy or DataFrame type
+    Return: DataType constant
+    """
+    if type(data) == type(np.empty(0)):
+        return DataType.NUMPY
+    elif type(data) == type(pd.DataFrame({'A': []})):
+        return DataType.DATAFRAME
+
+def column_count(data):
+    """
+    Parameters: Pandas DataFrame or Numpy array
+    Processing: Will count columns
+    Return: Number of columns
+    """
+    column_count = 0
+    
+    if detect_datatype(data) == DataType.NUMPY:
+        column_count = len(data[0])
+    elif detect_datatype(data) == DataType.DATAFRAME:
+        column_count = len(data.columns)
+
+    return column_count
 
 def getColNames(data):
     col_names = []
