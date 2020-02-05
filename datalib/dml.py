@@ -125,6 +125,42 @@ def split_dataset(data, train_pct=DEFAULT_TRAIN_PCT, random=False):
 
     return train_data, test_data
 
+def make_integer_data(data, cols, scale=10000):
+    """
+    Parameters: data: Pandas DataFrame or Numpy array
+                cols: columns to scale (but all come back as ints)
+                scale: factor to scale
+    Processing: Make data into scaled integer data.
+                For example: if scale is 1000 and data
+                is .9 this will become 900
+    Return: Dataset with scaled integers
+    """
+    ncols = column_count(data)
+    if cols > ncols: cols = ncols # protect the indexes
+    
+    if detect_datatype(data) == DataType.NUMPY:
+        data[:, 0:cols] *= float(scale)
+    elif detect_datatype(data) == DataType.DATAFRAME:
+        # this works but causes a copy of a slice warning
+        #column_names = getColNames(data)
+        #column_names = column_names[:cols]
+        #data.loc[:, column_names[0]:column_names[-1]] *= scale
+        # this works too but causes a copy of a slice warning
+        #data.loc[:, column_names[0]:column_names[-1]] = data.loc[:, column_names[0]:column_names[-1]] * scale
+        
+        # this also works but also causes a copy of a slice warning
+        #data.iloc[:, 0:cols] = data.iloc[:, 0:cols].mul(float(scale))
+        
+        # this isn't very python like, but causes no warnings, using it until
+        # I figure out how to do it the "Python way" without warnings
+        rows = len(data.index)
+        for row in range(0,rows):
+            for col in range (0, cols):
+                data.iat[row,col] = data.iat[row,col] * scale
+    
+    return data.astype(int)
+    
+
 def make_timeseries(data, out_cols=None, lag=1, fill=False):
     """
     Parameters: Pandas DataFrame or Numpy array, list of cols to extract,
