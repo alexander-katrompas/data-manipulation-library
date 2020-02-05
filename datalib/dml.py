@@ -257,7 +257,7 @@ def column_count(data):
 
     return column_count
 
-def getColNames(data):
+def get_col_names(data):
     col_names = []
     if detect_datatype(data) == DataType.NUMPY:
         # "labels" columns 0,1,2, etc
@@ -266,7 +266,7 @@ def getColNames(data):
         col_names = list(map(str, data.columns))
     return col_names
 
-def getMinMax(data):
+def get_min_max(data):
     minmax = [[], []]
     if detect_datatype(data) == DataType.NUMPY:
         minmax[0] = np.amin(data, axis=0)
@@ -275,7 +275,7 @@ def getMinMax(data):
         minmax = data.agg([min, max]).to_numpy()
     return minmax
 
-def getStdev(data):
+def get_stdev(data):
     stdev = []
     if detect_datatype(data) == DataType.NUMPY:
         stdev = np.nanstd(data, axis=0)
@@ -283,4 +283,3 @@ def getStdev(data):
         #minmax = data.agg([min, max]).to_numpy()
         stdev = list(data.std(axis=0, skipna=True))
     return stdev
-
