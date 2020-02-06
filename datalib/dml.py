@@ -69,12 +69,12 @@ def getio(data, x_cols):
     
     if (x_cols > 0 and x_cols < total_cols):
         if detect_datatype(data) == DataType.NUMPY:
-            X = data[:, :x_cols]
+            X = data[:,:x_cols]
             Y = data[:, x_cols:]
         elif detect_datatype(data) == DataType.DATAFRAME:
             # left of the , ommitting start and stop gives "all rows"
             # right of the , ommitting start and including number of columns
-            X = data.iloc[:, :x_cols]
+            X = data.iloc[:,:x_cols]
             Y = data.iloc[:, x_cols:]
 
     return X, Y
@@ -154,9 +154,9 @@ def make_integer_data(data, cols, scale=10000):
         # this isn't very python like, but causes no warnings, using it until
         # I figure out how to do it the "Python way" without warnings
         rows = len(data.index)
-        for row in range(0,rows):
+        for row in range(0, rows):
             for col in range (0, cols):
-                data.iat[row,col] = data.iat[row,col] * scale
+                data.iat[row, col] = data.iat[row, col] * scale
     
     return data.astype(int)
     
@@ -194,7 +194,7 @@ def make_timeseries(data, out_cols=None, lag=1, fill=False):
         out_data = data[:, out_cols]
         
         #created data to insert for shift
-        insert_data = np.empty((lag, column_count(data), ))
+        insert_data = np.empty((lag, column_count(data),))
         insert_data[:] = np.NaN
         
         # add insert data to top
@@ -230,6 +230,14 @@ def make_timeseries(data, out_cols=None, lag=1, fill=False):
 # INFORMATIONAL FUNCTIONS 
 # These functions report on data and metadata
 # #############################################
+
+def count_unique(data):
+    count = 0
+    if detect_datatype(data) == DataType.NUMPY:
+        count = len(np.unique(data))
+    elif detect_datatype(data) == DataType.DATAFRAME:
+        count = count_unique(data.to_numpy())
+    return count
 
 def detect_datatype(data):
     """
