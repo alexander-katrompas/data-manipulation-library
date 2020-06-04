@@ -227,6 +227,19 @@ def make_timeseries(data, out_cols=None, lag=1, fill=False):
     return data
 
 
+def shape_3D_data(data, timesteps):
+    # time steps are steps per batch
+    features = len(data[0])
+    # samples are total number of input vectors
+    samples = data.shape[0]
+    
+    # samples must divide evenly by timesteps to create an even set of batches
+    if not(samples % timesteps):
+        return np.array(data).reshape(int(data.shape[0] / timesteps), timesteps, features)
+    else:
+        raise ValueError("timesteps must divide evenly into total samples")
+
+
 # #############################################
 # INFORMATIONAL FUNCTIONS 
 # These functions report on data and metadata
