@@ -20,50 +20,56 @@ DEFAULT_TRAIN_PCT = 80.0
 # in some way and return the manipulated data
 # #############################################
 
-def normalize(dataset, np_array=False, scaled=False):
+def normalize(data, np_array=False, scaled=False):
     """
+    Normalize and optionally scale a dataset.
+    
     Parameters: Pandas DataFrame or Numpy,
                 optional np_array flag for return type, optional scale flag
     Processing: Will normalize and optionally scale the dataset
     Return: Pandas DataFrame or Numpy array with normalized/scaled data
     """
     # ensure floats
-    dataset = dataset.astype(float)
+    data = data.astype(float)
     
-    if detect_datatype(dataset) == DataType.NUMPY:
+    if detect_datatype(data) == DataType.NUMPY:
         # set-up normalization
         high = 1.0
         low = 0.0
-        mins = np.min(dataset, axis=0)
-        maxs = np.max(dataset, axis=0)
+        mins = np.min(data, axis=0)
+        maxs = np.max(data, axis=0)
         rng = maxs - mins
         # normalize
-        dataset = high - (((high - low) * (maxs - dataset)) / rng)
+        data = high - (((high - low) * (maxs - data)) / rng)
         # scale if needed
         if scaled:
-            dataset = (dataset / .5) - 1
-    elif detect_datatype(dataset) == DataType.DATAFRAME:
+            data = (data / .5) - 1
+    elif detect_datatype(data) == DataType.DATAFRAME:
         # normalize
-        [dataset[col].update((dataset[col] - dataset[col].min()) / (dataset[col].max() - dataset[col].min())) for col in dataset.columns]
+        [data[col].update((data[col] - data[col].min()) / (data[col].max() - data[col].min())) for col in data.columns]
         # scale if needed
         if scaled:
-            [dataset[col].update((dataset[col] / .5)-1) for col in dataset.columns]
+            [data[col].update((data[col] / .5)-1) for col in data.columns]
     
     # return appropriate object
-    if np_array and detect_datatype(dataset) == DataType.DATAFRAME:
-        dataset = dataset.to_numpy()
-    elif not np_array and detect_datatype(dataset) == DataType.NUMPY:
-        dataset = pd.DataFrame(dataset)
+    if np_array and detect_datatype(data) == DataType.DATAFRAME:
+        data = data.to_numpy()
+    elif not np_array and detect_datatype(data) == DataType.NUMPY:
+        data = pd.DataFrame(data)
     
-    return dataset
+    return data
 
 def getio(data, x_cols):
     """
+    Slice a dataset into input and output features based on the last x_cols
+    
     Parameters: Pandas DataFrame or Numpy array, number of column from left to right
            that are the input columns.
     Processing: Will slice into two sets, input and output data
     Return: Two data sets of the same type sent in, input and output
     """
+    if len(data.shape) != 2: raise TypeError("Input data must be 2D.")
+
     X = None
     Y = None
     total_cols = column_count(data)
@@ -82,12 +88,16 @@ def getio(data, x_cols):
 
 def split_dataset(data, train_pct=DEFAULT_TRAIN_PCT, random=False):
     """
+    Split a dataset into test and training, either randomly or sequentially
+    
     Parameters: Pandas DataFrame or Numpy array, percent of train data,
                 random sampling flag to determin if taking random
                 percent or first percent 
-    Processing: Split data set
+    Processing: Split data set into two data sets either randomly or sequentially
     Return: Training and test data sets of the same type input
     """
+    if len(data.shape) != 2: raise TypeError("Input data must be 2D.")
+    
     train_data = None
     test_data = None
 
@@ -128,6 +138,8 @@ def split_dataset(data, train_pct=DEFAULT_TRAIN_PCT, random=False):
 
 def make_integer_data(data, cols, scale=10000):
     """
+    Transform float data into integer data.
+    
     Parameters: data: Pandas DataFrame or Numpy array
                 cols: columns to scale (but all come back as ints)
                 scale: factor to scale
@@ -136,6 +148,8 @@ def make_integer_data(data, cols, scale=10000):
                 is .9 this will become 900
     Return: Dataset with scaled integers
     """
+    if len(data.shape) != 2: raise TypeError("Input data must be 2D.")
+    
     ncols = column_count(data)
     if cols > ncols: cols = ncols # protect the indexes
     
@@ -164,11 +178,14 @@ def make_integer_data(data, cols, scale=10000):
 
 def make_timeseries(data, out_cols=None, lag=1, fill=False):
     """
+    Create timeseries data for prediction with the output being a time shifted version of an input column.
+    
     Parameters: Pandas DataFrame or Numpy array, list of cols to extract,
                 lag between I/O, fill data
     Processing: pull out output cols, shift them, append them back to the dataset
     Return: Dataset with time shifted output
     """
+    if len(data.shape) != 2: raise TypeError("Input data must be 2D.")
     
     num_columns = column_count(data)
     
@@ -228,6 +245,15 @@ def make_timeseries(data, out_cols=None, lag=1, fill=False):
 
 
 def shape_3D_data(data, timesteps):
+    if len(data.shape) != 2: raise TypeError("Input data must be 2D.")
+    
+    """
+    Resape 2D data into 3D data of groups of 2D timesteps
+    
+    Parameters: Pandas DataFrame or Numpy 3D array, number of timesteps/group
+    Processing: Reshape 2D data into 3D data of array of 2D 
+    Return: The reshaped data as numpy 3D array
+    """
     # time steps are steps per batch
     features = len(data[0])
     # samples are total number of input vectors
@@ -246,6 +272,14 @@ def shape_3D_data(data, timesteps):
 # #############################################
 
 def count_unique(data):
+    """
+    Count the number of unique values in a Pandas DataFrame or Numpy array
+    
+    Parameters: Pandas DataFrame or Numpy array
+    Processing: count unique values
+    Return: count
+    """
+
     count = 0
     if detect_datatype(data) == DataType.NUMPY:
         count = len(np.unique(data))
@@ -255,6 +289,8 @@ def count_unique(data):
 
 def detect_datatype(data):
     """
+    Find out if data is Pandas DataFrame or Numpy array
+    
     Parameters: Pandas DataFrame or Numpy array
     Processing: Detect type of Numpy or DataFrame type
     Return: DataType constant
@@ -266,6 +302,8 @@ def detect_datatype(data):
 
 def column_count(data):
     """
+    Count the columns in a Pandas DataFrame or Numpy array
+    
     Parameters: Pandas DataFrame or Numpy array
     Processing: Will count columns
     Return: Number of columns
@@ -280,6 +318,14 @@ def column_count(data):
     return column_count
 
 def get_col_names(data):
+    """
+    Extract the list of column names or ordinal numbers of columns
+    
+    Parameters: DataFrame or Numpy array
+    Processing: Extract the list of column names
+    Return: A list of column names
+    """
+
     col_names = []
     if detect_datatype(data) == DataType.NUMPY:
         # "labels" columns 0,1,2, etc
@@ -289,6 +335,14 @@ def get_col_names(data):
     return col_names
 
 def get_min_max(data):
+    """
+    Find and return the min and max of a DataFrame or Numpy array
+    
+    Parameters: DataFrame or Numpy array
+    Processing: Find min and max
+    Return: min and max
+    """
+
     minmax = [[], []]
     if detect_datatype(data) == DataType.NUMPY:
         minmax[0] = np.amin(data, axis=0)
@@ -298,6 +352,14 @@ def get_min_max(data):
     return minmax
 
 def get_stdev(data):
+    """
+    Calcuate the standard deviation of data
+    
+    Parameters: Numpy array or DataFrame
+    Processing: Calcuate the standard deviation of data
+    Return: the standard deviation
+    """
+
     stdev = []
     if detect_datatype(data) == DataType.NUMPY:
         stdev = np.nanstd(data, axis=0)
