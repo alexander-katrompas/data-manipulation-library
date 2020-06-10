@@ -68,21 +68,20 @@ def getio(data, x_cols):
     Processing: Will slice into two sets, input and output data
     Return: Two data sets of the same type sent in, input and output
     """
-    if len(data.shape) != 2: raise TypeError("Input data must be 2D.")
-
-    X = None
-    Y = None
     total_cols = column_count(data)
-    
-    if (x_cols > 0 and x_cols < total_cols):
-        if detect_datatype(data) == DataType.NUMPY:
-            X = data[:,:x_cols]
-            Y = data[:, x_cols:]
-        elif detect_datatype(data) == DataType.DATAFRAME:
-            # left of the , ommitting start and stop gives "all rows"
-            # right of the , ommitting start and including number of columns
-            X = data.iloc[:,:x_cols]
-            Y = data.iloc[:, x_cols:]
+    if len(data.shape) != 2:
+        raise TypeError("Input data must be 2D.")
+    elif x_cols < 1 or x_cols >= total_cols:
+        raise ValueError("Input column count must be between 1 and " + str(total_cols - 1) + " inclusive")
+
+    if detect_datatype(data) == DataType.NUMPY:
+        X = data[:,:x_cols]
+        Y = data[:, x_cols:]
+    elif detect_datatype(data) == DataType.DATAFRAME:
+        # left of the , ommitting start and stop gives "all rows"
+        # right of the , ommitting start and including number of columns
+        X = data.iloc[:,:x_cols]
+        Y = data.iloc[:, x_cols:]
 
     return X, Y
 
