@@ -262,7 +262,9 @@ def shape_3D_data(data, timesteps):
     if not(samples % timesteps):
         return np.array(data).reshape(int(data.shape[0] / timesteps), timesteps, features)
     else:
-        raise ValueError("timesteps must divide evenly into total samples")
+        msg = "timesteps must divide evenly into total samples: " + str(samples) + "/" \
+            + str(timesteps) + "=" + str(round(float(samples) / float(timesteps), 2))
+        raise ValueError(msg)
 
 
 # #############################################
