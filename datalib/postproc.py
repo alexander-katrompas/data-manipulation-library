@@ -71,13 +71,16 @@ class Postproc:
         Processing: none (display function)
         Return: none
         """
-        s_count = 0
-        for sequence in self.data:
-            print("Sequence:", s_count, "(", len(sequence), "pairs )")
-            print(sequence)
-            #for pair in sequence:
-            #    print("  ", pair)
-            s_count += 1
+        if self.loaded:
+            s_count = 0
+            for sequence in self.data:
+                print("Sequence:", s_count, "(", len(sequence), "pairs )")
+                print(sequence)
+                #for pair in sequence:
+                #    print("  ", pair)
+                s_count += 1
+        else:
+            print("No data loaded.")
 
 
     def display_info(self):
@@ -89,12 +92,15 @@ class Postproc:
         Processing: none (display function)
         Return: none
         """
-        print("Total Sequences:", self.nsequences)
-        print("Largest Sequence:", self.largest_sequence)
-        print("Smallest Sequence:", self.smallest_sequence)
-        print("MSE per Sequence:")
-        self.dispaly_mse()
-        print()
+        if self.loaded:
+            print("Total Sequences:", self.nsequences)
+            print("Largest Sequence:", self.largest_sequence)
+            print("Smallest Sequence:", self.smallest_sequence)
+            print("MSE per Sequence:")
+            self.dispaly_mse()
+            print()
+        else:
+            print("No data loaded.")
 
 
     def dispaly_mse(self):
@@ -106,10 +112,13 @@ class Postproc:
         Processing: none (display function)
         Return: none
         """
-        ns = 0
-        for mse in self.mse:
-            ns += 1
-            print("  ", ns, ":", mse)
+        if self.loaded:
+            ns = 0
+            for mse in self.mse:
+                ns += 1
+                print("  ", ns, ":", mse)
+        else:
+            print("No data loaded.")
 
     
     ###############################
@@ -218,7 +227,7 @@ class Postproc:
                 mins = length
         self.largest_sequence = maxs
         self.smallest_sequence = mins
-        self.calc_mse()
+        self.__calc_mse()
 
 
     def __calc_mse(self):
