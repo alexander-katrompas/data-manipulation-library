@@ -11,12 +11,30 @@ import numpy as np
 DEFAULT_THRESHHOLD = 0.7
 
 class Postproc:
+    
+    
+    ###############################
+    # Constructor
+    ###############################
     def __init__(self, filename, delim=","):
+        """
+        Constructor
+        
+        Parameters: filename to load
+                    optional delimeter: comman, space, tab
+        Processing: Call load_data
+        Return: none
+        """
         self.load_data(filename, delim=",")
 
+
+    ###############################
+    # Public
+    ###############################
     def load_data(self, filename, delim=","):
         """
         Load and verify a data file with actual and predicted for binary classification.
+        Can be called after creation to load a new file.
         
         Parameters: filename to load
                     optional delimeter: comman, space, tab
@@ -35,11 +53,68 @@ class Postproc:
             self.delim = delim
         self.lines = self.__verify_file()
         if self.lines:
-            print("file verified")
             self.__load_actual_predicted()
+            self.loaded = True
         else:
-            print("file not verified")        
+            self.loaded = False
 
+
+    ###############################
+    # Display Fucntions
+    ###############################
+    def display_data(self):
+        """
+        Display all data
+        
+        Parameters: none
+                    
+        Processing: none (display function)
+        Return: none
+        """
+        s_count = 0
+        for sequence in self.data:
+            print("Sequence:", s_count, "(", len(sequence), "pairs )")
+            print(sequence)
+            #for pair in sequence:
+            #    print("  ", pair)
+            s_count += 1
+
+
+    def display_info(self):
+        """
+        Display all stats
+        
+        Parameters: none
+                    
+        Processing: none (display function)
+        Return: none
+        """
+        print("Total Sequences:", self.nsequences)
+        print("Largest Sequence:", self.largest_sequence)
+        print("Smallest Sequence:", self.smallest_sequence)
+        print("MSE per Sequence:")
+        self.dispaly_mse()
+        print()
+
+
+    def dispaly_mse(self):
+        """
+        Display all MSE
+        
+        Parameters: none
+                    
+        Processing: none (display function)
+        Return: none
+        """
+        ns = 0
+        for mse in self.mse:
+            ns += 1
+            print("  ", ns, ":", mse)
+
+    
+    ###############################
+    # Private
+    ###############################
     def __verify_file(self):
         """
         Verify a csv has exactly two numeric values per line, and two classes total.
@@ -145,6 +220,7 @@ class Postproc:
         self.smallest_sequence = mins
         self.calc_mse()
 
+
     def __calc_mse(self):
         """
         Calculate MSE for all actual and predicted sequences
@@ -159,50 +235,4 @@ class Postproc:
             s = s.transpose()
             self.mse.append(np.mean((s[0] - s[1])**2))
 
-    def display_data(self):
-        """
-        Display all data
-        
-        Parameters: none
-                    
-        Processing: none (display function)
-        Return: none
-        """
-        s_count = 0
-        for sequence in self.data:
-            print("Sequence:", s_count, "(", len(sequence), "pairs )")
-            print(sequence)
-            #for pair in sequence:
-            #    print("  ", pair)
-            s_count += 1
-
-    def display_info(self):
-        """
-        Display all stats
-        
-        Parameters: none
-                    
-        Processing: none (display function)
-        Return: none
-        """
-        print("Total Sequences:", self.nsequences)
-        print("Largest Sequence:", self.largest_sequence)
-        print("Smallest Sequence:", self.smallest_sequence)
-        print("MSE per Sequence:")
-        self.dispaly_mse()
-        print()
-
-    def dispaly_mse(self):
-        """
-        Display all MSE
-        
-        Parameters: none
-                    
-        Processing: none (display function)
-        Return: none
-        """
-        ns = 0
-        for mse in self.mse:
-            ns += 1
-            print("  ", ns, ":", mse)
     
