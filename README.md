@@ -1,5 +1,4 @@
-# Data Manipulation Library
-For Numpy arrays and Pandas DataFrames
+# Data Manipulation and Post Processing Libraries
 
 dml.py
 -----------------------------------------------------------------------
