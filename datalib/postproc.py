@@ -236,7 +236,6 @@ class Postproc:
         receiver operating characteristic curve
         
         """
-        print(self.data)
         y = self.data[:, 0]
         yhat = self.data[:, 1]
 
@@ -418,7 +417,7 @@ class Postproc:
                     else:
                         tmp_fn += 1
                 percent_tp = float(tmp_tp) / float(scount)
-                percent_fn = float(tmp_fn) / float(scount)
+                #percent_fn = float(tmp_fn) / float(scount)
                 if percent_tp >= self.DEFAULT_PERCENTAGE:
                     self.tp += 1
                     self.marked[count] = self.TP
@@ -433,7 +432,7 @@ class Postproc:
                     else:
                         tmp_fp += 1
                 percent_tn = float(tmp_tn) / float(scount)
-                percent_fp = float(tmp_fp) / float(scount)
+                #percent_fp = float(tmp_fp) / float(scount)
                 if percent_tn >= self.DEFAULT_PERCENTAGE:
                     self.tn += 1
                     self.marked[count] = self.TN
