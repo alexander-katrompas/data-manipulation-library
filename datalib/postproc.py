@@ -10,6 +10,8 @@ from matplotlib import pyplot
 import numpy as np
 from sklearn.metrics import roc_curve
 from sklearn.metrics import roc_auc_score
+from sklearn.metrics import precision_recall_curve
+from sklearn.metrics import auc
 
 class Postproc:
     
@@ -62,6 +64,7 @@ class Postproc:
         self.marked = []
         self.tp = self.fp = self.tn = self.fn = -1
         self.roc_auc = 0 # need to call graph_roc to set
+        self.pr_auc = 0 # need to call graph_pr to set
         
         if delim != " " and delim != "," and delim != "\t":
             self.delim = ","
@@ -134,6 +137,11 @@ class Postproc:
 
     def get_roc_auc(self):
         return self.roc_auc
+
+
+    def get_pr_auc(self):
+        return self.pr_auc
+
 
     ###############################
     # Display Fucntions
@@ -255,6 +263,34 @@ class Postproc:
 
         self.roc_auc = roc_auc_score(y, yhat)
         return self.roc_auc
+
+    def graph_pr(self):
+        """
+        precision recall curve
+        
+        """
+        y = self.data[:, 0]
+        yhat = self.data[:, 1]
+        
+        # calculate the no skill line as the proportion of the positive class
+        no_skill = len(y[y==1]) / len(y)
+        # plot the no skill precision-recall curve
+        pyplot.plot([0, 1], [no_skill, no_skill], linestyle='--', label='No Skill')
+        # calculate model precision-recall curve
+        precision, recall, _ = precision_recall_curve(y, yhat)
+        # plot the model precision-recall curve
+        pyplot.plot(recall, precision, marker='.', label='Logistic')
+        # axis labels
+        pyplot.xlabel('Recall')
+        pyplot.ylabel('Precision')
+        # show the legend
+        pyplot.legend()
+        # show the plot
+        pyplot.show()    
+    
+        self.pr_auc = auc(recall, precision)
+        return self.pr_auc
+    
     
     ###############################
     # Private
