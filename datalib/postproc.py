@@ -8,7 +8,6 @@ i.e. temporal classifaction
 
 import numpy as np
 
-DEFAULT_THRESHHOLD = 0.7
 
 class Postproc:
     
@@ -25,12 +24,22 @@ class Postproc:
         Processing: Call load_data
         Return: none
         """
+        self.DEFAULT_THRESHHOLD = 0.51
+        self.DEFAULT_PERCENTAGE = 0.51
+        self.TP = 1
+        self.FP = 2
+        self.TN = 3
+        self.FN = 4
+
         self.load_data(filename, delim=",")
 
 
     ###############################
     # Public
     ###############################
+    def get_avg_mse(self):
+        return float(sum(self.mse)) / float(self.nsequences)
+    
     def load_data(self, filename, delim=","):
         """
         Load and verify a data file with actual and predicted for binary classification.
@@ -47,6 +56,9 @@ class Postproc:
         self.largest_sequence = 0
         self.smallest_sequence = 0
         self.mse = []
+        self.marked = []
+        self.tp = self.fp = self.tn = self.fn = -1
+        
         if delim != " " and delim != "," and delim != "\t":
             self.delim = ","
         else:
@@ -57,6 +69,63 @@ class Postproc:
             self.loaded = True
         else:
             self.loaded = False
+
+    def get_tp(self, printit=False):
+        marked = {}
+        for i in range(self.nsequences):
+            if self.marked[i] == self.TP:
+                marked[i] = self.data[i]
+        
+        if printit:
+            for key in marked:
+                print(key)
+                for val in marked[key]:
+                    print("  ", val)
+                print()
+        else:
+            return marked
+
+    def get_fp(self, printit=False):
+        marked = {}
+        for i in range(self.nsequences):
+            if self.marked[i] == self.FP:
+                marked[i] = self.data[i]
+        if printit:
+            for key in marked:
+                print(key)
+                for val in marked[key]:
+                    print("  ", val)
+                print()
+        else:
+            return marked
+
+    def get_tn(self, printit=False):
+        marked = {}
+        for i in range(self.nsequences):
+            if self.marked[i] == self.TN:
+                marked[i] = self.data[i]
+        if printit:
+            for key in marked:
+                print(key)
+                for val in marked[key]:
+                    print("  ", val)
+                print()
+        else:
+            return marked
+
+    def get_fn(self, printit=False):
+        marked = {}
+        for i in range(self.nsequences):
+            if self.marked[i] == self.FN:
+                marked[i] = self.data[i]
+        if printit:
+            for key in marked:
+                print(key)
+                for val in marked[key]:
+                    print("  ", val)
+                print()
+        else:
+            return marked
 
 
     ###############################
@@ -83,7 +152,7 @@ class Postproc:
             print("No data loaded.")
 
 
-    def display_info(self):
+    def display_info(self, mse=True):
         """
         Display all stats
         
@@ -96,8 +165,12 @@ class Postproc:
             print("Total Sequences:", self.nsequences)
             print("Largest Sequence:", self.largest_sequence)
             print("Smallest Sequence:", self.smallest_sequence)
-            print("MSE per Sequence:")
-            self.dispaly_mse()
+            if mse:
+                print("MSE per Sequence:")
+                self.dispaly_mse()
+            else:
+                print("Average MSE: {:.3f}".format(self.get_avg_mse()))
+            self.display_confusion_matrix()
             print()
         else:
             print("No data loaded.")
@@ -116,10 +189,36 @@ class Postproc:
             ns = 0
             for mse in self.mse:
                 ns += 1
-                print("  ", ns, ":", mse)
+                print("{}: {:.3f}".format(ns, mse))
         else:
             print("No data loaded.")
 
+    def display_confusion_matrix(self):
+        print()
+        print(" -------------------------------------")
+        print(" |{:>12}{:>12}{:>12}".format("C.MATRIX |", "Pos Pred |", "Neg Pred |"))
+        print(" -------------------------------------")
+        print(" |{:>12}{:>12}{:>12}".format("Pos Class |", str(self.tp) + "    |", str(self.fn) + "    |"))
+        print(" -------------------------------------")
+        print(" |{:>12}{:>12}{:>12}".format("Neg Class |", str(self.fp) + "    |", str(self.tn) + "    |"))
+        print(" -------------------------------------")
+        total_cases = self.tp + self.fp + self.fn + self.tn
+        if self.nsequences == total_cases:
+            match = "yes"
+        else:
+            match = "no"
+        print("    |tp|fn|    Total Sequences: {}".format(self.nsequences))
+        print("    |-----|    Total Cases: {}".format(total_cases))
+        print("    |fp|tn|    Match: {}".format(match))
+        print()
+    
+    
+    def display_marked(self):
+        for i in range(self.nsequences):
+            print("{}: {}".format(i, self.marked[i]))
+    
+    def display_sequence(self, i):
+        print(self.data[i])
     
     ###############################
     # Private
@@ -202,8 +301,10 @@ class Postproc:
         # save last sequence
         self.data.append(sequence)
         
-        self.__set_info()
         self.nsequences = len(self.data)
+        self.marked = [0] * self.nsequences
+        self.__set_info()
+        
         fin.close()
 
 
@@ -228,6 +329,7 @@ class Postproc:
         self.largest_sequence = maxs
         self.smallest_sequence = mins
         self.__calc_mse()
+        self.__calc_matrix()
 
 
     def __calc_mse(self):
@@ -242,6 +344,55 @@ class Postproc:
         for sequence in self.data:
             s = np.array(sequence)
             s = s.transpose()
-            self.mse.append(np.mean((s[0] - s[1])**2))
+            self.mse.append(np.mean((s[0] - s[1]) ** 2))
 
-    
+    def __calc_matrix(self):
+        """
+        Calculate a confusion matrix based on sequences
+        
+        Parameters: none
+                    
+        Processing: Calculate a confusion matrix based on sequences by counting
+                    all TP/FP/TN/FN and then applying a percent to determine
+                    the "truth" of the whole sequence.
+        Return: none
+        """
+        self.tp = self.tn = self.fp = self.fn = 0
+        
+        count = 0
+        for sequence in self.data:
+            scount = len(sequence)
+            target = sequence[0][0] # the first actual
+            tmp_tp = tmp_fp = tmp_tn = tmp_fn = 0
+            
+            
+            if target == 1:
+                for i in range(scount):
+                    if sequence[i][1] > self.DEFAULT_THRESHHOLD:
+                        tmp_tp += 1
+                    else:
+                        tmp_fn += 1
+                percent_tp = float(tmp_tp) / float(scount)
+                percent_fn = float(tmp_fn) / float(scount)
+                if percent_tp >= self.DEFAULT_PERCENTAGE:
+                    self.tp += 1
+                    self.marked[count] = self.TP
+                else:
+                    self.fn += 1
+                    self.marked[count] = self.FN
+                
+            else:
+                for i in range(scount):
+                    if sequence[i][1] < self.DEFAULT_THRESHHOLD:
+                        tmp_tn += 1
+                    else:
+                        tmp_fp += 1
+                percent_tn = float(tmp_tn) / float(scount)
+                percent_fp = float(tmp_fp) / float(scount)
+                if percent_tn >= self.DEFAULT_PERCENTAGE:
+                    self.tn += 1
+                    self.marked[count] = self.TN
+                else:
+                    self.fp += 1
+                    self.marked[count] = self.FP
+            count += 1
