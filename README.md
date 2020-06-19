@@ -1,13 +1,11 @@
 # Data Manipulation Library
 For Numpy arrays and Pandas DataFrames
 
-This library serves no purpose other than to wrap common Numpy and Pandas
-operations in a single interface. Basically I got tired of thinking about
-if I had/needed a Numpy array or a Dataframe, and I wanted to not think
-about it anymore.
+dml.py
+-----------------------------------------------------------------------
+Library of functions to wrap common Numpy and Pandas operations in a single interface. The purpose being to be able to easily move from Numpy and Pandas without thinking about it, and to perform common matrix manipulations, and a few more interesting functions like make_timeseries() and normalize() (which will also scale).
 
-The wrapper functions here allow you to go back and forth between Numpy and
-Dataframes as needed, along with a few more interesting functions like
-make_timeseries() and normalize() (which will also scale).
+prosproc.py
+-----------------------------------------------------------------------
+A class for post processing binary classification data producing all common statistics including confusion matrix, MSE (average and per sequence), ROC and PR curves and area-under-curves. Will categorize data into binary sequences for further analysis.
 
-Still adding things as I think of them.
