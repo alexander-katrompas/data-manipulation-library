@@ -29,7 +29,7 @@ class Postproc:
         Return: none
         """
         self.DEFAULT_THRESHHOLD = 0.51
-        self.DEFAULT_PERCENTAGE = 0.51
+        self.DEFAULT_PERCENTAGE = 0.01
         self.TP = 1
         self.FP = 2
         self.TN = 3
@@ -41,9 +41,18 @@ class Postproc:
     ###############################
     # Public
     ###############################
+
     def get_avg_mse(self):
+        """
+        Returns average MSE
+        
+        Parameters: none
+        Processing: Calculates and returns average MSE
+        Return: none
+        """
         return float(sum(self.mse)) / float(self.nsequences)
-    
+
+
     def load_data(self, filename, delim=","):
         """
         Load and verify a data file with actual and predicted for binary classification.
@@ -77,7 +86,16 @@ class Postproc:
         else:
             self.loaded = False
 
+
     def get_tp(self, printit=False):
+        """
+        Returns or prints true positives.
+        
+        Parameters: Optional print flag to flip between print and return
+        Processing: Extracts true positives, puts them in a dicionary with the
+                    sequence number as the key (not sequential, it's a key)
+        Return: Optionally the dictionary created.
+        """
         marked = {}
         for i in range(self.nsequences):
             if self.marked[i] == self.TP:
@@ -92,7 +110,16 @@ class Postproc:
         else:
             return marked
 
+
     def get_fp(self, printit=False):
+        """
+        Returns or prints false positives.
+        
+        Parameters: Optional print flag to flip between print and return
+        Processing: Extracts false positives, puts them in a dicionary with the
+                    sequence number as the key (not sequential, it's a key)
+        Return: Optionally the dictionary created.
+        """
         marked = {}
         for i in range(self.nsequences):
             if self.marked[i] == self.FP:
@@ -106,7 +133,16 @@ class Postproc:
         else:
             return marked
 
+
     def get_tn(self, printit=False):
+        """
+        Returns or prints true negatives.
+        
+        Parameters: Optional print flag to flip between print and return
+        Processing: Extracts true negatives, puts them in a dicionary with the
+                    sequence number as the key (not sequential, it's a key)
+        Return: Optionally the dictionary created.
+        """
         marked = {}
         for i in range(self.nsequences):
             if self.marked[i] == self.TN:
@@ -121,6 +157,14 @@ class Postproc:
             return marked
 
     def get_fn(self, printit=False):
+        """
+        Returns or prints false negatives.
+        
+        Parameters: Optional print flag to flip between print and return
+        Processing: Extracts false negatives, puts them in a dicionary with the
+                    sequence number as the key (not sequential, it's a key)
+        Return: Optionally the dictionary created.
+        """
         marked = {}
         for i in range(self.nsequences):
             if self.marked[i] == self.FN:
@@ -136,10 +180,24 @@ class Postproc:
 
 
     def get_roc_auc(self):
+        """
+        Returns the ROC area under the cruve
+        
+        Parameters: none
+        Processing: none
+        Return: none
+        """
         return self.roc_auc
 
 
     def get_pr_auc(self):
+        """
+        Returns the RR area under the cruve
+        
+        Parameters: none
+        Processing: none
+        Return: none
+        """
         return self.pr_auc
 
 
@@ -209,6 +267,14 @@ class Postproc:
             print("No data loaded.")
 
     def display_confusion_matrix(self):
+        """
+        Display the confusion matrix
+        
+        Parameters: none
+                    
+        Processing: none (display function)
+        Return: none
+        """
         print()
         print(" -------------------------------------")
         print(" |{:>12}{:>12}{:>12}".format("C.MATRIX |", "Pos Pred |", "Neg Pred |"))
@@ -229,11 +295,30 @@ class Postproc:
     
     
     def display_marked(self):
+        """
+        Display all sequences amd how they are marked TP/FP/TN/FN
+        
+        Parameters: none
+                    
+        Processing: none (display function)
+        Return: none
+        """
         for i in range(self.nsequences):
             print("{}: {}".format(i, self.marked[i]))
     
     def display_sequence(self, i):
-        print(self.sequenced_data[i])
+        """
+        Display a specific sequence
+        
+        Parameters: the index of the sequence
+                    
+        Processing: none (display function)
+        Return: none
+        """
+        if i < self.nsequences:
+            print(self.sequenced_data[i])
+        else:
+            print("Sequence index out of range 0-{}".format(self.nsequences))
     
     ###############################
     # Graph Functions
