@@ -6,8 +6,10 @@ For time series binary classification data.
 i.e. temporal classifaction
 """
 
+from matplotlib import pyplot
 import numpy as np
-
+from sklearn.metrics import roc_curve
+from sklearn.metrics import roc_auc_score
 
 class Postproc:
     
@@ -51,13 +53,15 @@ class Postproc:
         Return: none
         """
         self.filename = filename
-        self.data = []
+        self.data = [] # will become a numpy array
+        self.sequenced_data = []
         self.nsequences = 0
         self.largest_sequence = 0
         self.smallest_sequence = 0
         self.mse = []
         self.marked = []
         self.tp = self.fp = self.tn = self.fn = -1
+        self.roc_auc = 0 # need to call graph_roc to set
         
         if delim != " " and delim != "," and delim != "\t":
             self.delim = ","
@@ -74,7 +78,7 @@ class Postproc:
         marked = {}
         for i in range(self.nsequences):
             if self.marked[i] == self.TP:
-                marked[i] = self.data[i]
+                marked[i] = self.sequenced_data[i]
         
         if printit:
             for key in marked:
@@ -89,7 +93,7 @@ class Postproc:
         marked = {}
         for i in range(self.nsequences):
             if self.marked[i] == self.FP:
-                marked[i] = self.data[i]
+                marked[i] = self.sequenced_data[i]
         if printit:
             for key in marked:
                 print(key)
@@ -103,7 +107,7 @@ class Postproc:
         marked = {}
         for i in range(self.nsequences):
             if self.marked[i] == self.TN:
-                marked[i] = self.data[i]
+                marked[i] = self.sequenced_data[i]
         if printit:
             for key in marked:
                 print(key)
@@ -117,7 +121,7 @@ class Postproc:
         marked = {}
         for i in range(self.nsequences):
             if self.marked[i] == self.FN:
-                marked[i] = self.data[i]
+                marked[i] = self.sequenced_data[i]
         if printit:
             for key in marked:
                 print(key)
@@ -127,6 +131,9 @@ class Postproc:
         else:
             return marked
 
+
+    def get_roc_auc(self):
+        return self.roc_auc
 
     ###############################
     # Display Fucntions
@@ -142,7 +149,7 @@ class Postproc:
         """
         if self.loaded:
             s_count = 0
-            for sequence in self.data:
+            for sequence in self.sequenced_data:
                 print("Sequence:", s_count, "(", len(sequence), "pairs )")
                 print(sequence)
                 #for pair in sequence:
@@ -218,7 +225,37 @@ class Postproc:
             print("{}: {}".format(i, self.marked[i]))
     
     def display_sequence(self, i):
-        print(self.data[i])
+        print(self.sequenced_data[i])
+    
+    ###############################
+    # Graph Functions
+    ###############################
+    
+    def graph_roc(self):
+        """
+        receiver operating characteristic curve
+        
+        """
+        print(self.data)
+        y = self.data[:, 0]
+        yhat = self.data[:, 1]
+
+        # plot no skill roc curve
+        pyplot.plot([0, 1], [0, 1], linestyle='--', label='No Skill')
+        # calculate roc curve for model
+        fpr, tpr, _ = roc_curve(y, yhat)
+        # plot model roc curve
+        pyplot.plot(fpr, tpr, marker='.', label='Model')
+        # axis labels
+        pyplot.xlabel('False Positive Rate')
+        pyplot.ylabel('True Positive Rate')
+        # show the legend
+        pyplot.legend()
+        # show the plot
+        pyplot.show()
+
+        self.roc_auc = roc_auc_score(y, yhat)
+        return self.roc_auc
     
     ###############################
     # Private
@@ -282,31 +319,39 @@ class Postproc:
         # start first sequence
         sequence = [line]
         
+        # add data to flat list
+        self.data.append(line)
+        
         for line in fin:
             line = line[:-1]
             if(len(line)):
                 line = line.split(self.delim)
                 line[0] = float(line[0])
                 line[1] = float(line[1])
+
+                # add data to flat list
+                self.data.append(line)
+                
                 if line[0] == classification:
                     sequence.append(line)
                 else:
                     # save sequence
-                    self.data.append(sequence)
+                    self.sequenced_data.append(sequence)
                     # set next classifcation
                     classification = line[0]
                     # start next seqence
                     sequence = [line]
 
         # save last sequence
-        self.data.append(sequence)
+        self.sequenced_data.append(sequence)
         
-        self.nsequences = len(self.data)
+        self.nsequences = len(self.sequenced_data)
         self.marked = [0] * self.nsequences
         self.__set_info()
         
         fin.close()
-
+        
+        self.data = np.array(self.data)
 
     def __set_info(self):
         """
@@ -316,11 +361,11 @@ class Postproc:
         Processing: calculates and sets all stats for the loaded data
         Return: none
         """
-        self.nsequences = len(self.data)
+        self.nsequences = len(self.sequenced_data)
         
-        maxs = len(self.data[0])
-        mins = len(self.data[0])
-        for sequence in self.data:
+        maxs = len(self.sequenced_data[0])
+        mins = len(self.sequenced_data[0])
+        for sequence in self.sequenced_data:
             length = len(sequence)
             if length > maxs:
                 maxs = length
@@ -341,7 +386,7 @@ class Postproc:
         Processing: Calculate MSE for all actual and predicted sequences
         Return: none
         """
-        for sequence in self.data:
+        for sequence in self.sequenced_data:
             s = np.array(sequence)
             s = s.transpose()
             self.mse.append(np.mean((s[0] - s[1]) ** 2))
@@ -360,7 +405,7 @@ class Postproc:
         self.tp = self.tn = self.fp = self.fn = 0
         
         count = 0
-        for sequence in self.data:
+        for sequence in self.sequenced_data:
             scount = len(sequence)
             target = sequence[0][0] # the first actual
             tmp_tp = tmp_fp = tmp_tn = tmp_fn = 0
