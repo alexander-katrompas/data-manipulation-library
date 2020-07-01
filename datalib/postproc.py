@@ -28,8 +28,8 @@ class Postproc:
         Processing: Call load_data
         Return: none
         """
-        self.DEFAULT_THRESHHOLD = 0.51
-        self.DEFAULT_PERCENTAGE = 0.01
+        self.DEFAULT_THRESHHOLD = 0.50
+        self.DEFAULT_PERCENTAGE = 0.50
         self.TP = 1
         self.FP = 2
         self.TN = 3
