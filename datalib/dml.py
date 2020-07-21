@@ -20,6 +20,50 @@ DEFAULT_TRAIN_PCT = 80.0
 # in some way and return the manipulated data
 # #############################################
 
+def remove_bad_data(infile, outfile, labels=False, header=False):
+    """
+    Remove rows with missing or invalid numeric values.
+    
+    Parameters: input file name, output file name
+                optional flags to indicate the presence of headers and labels
+    Processing: Will remove rows that contain a non-numeric value and place the
+                processed data into outfile.
+    Return: a count of the total rows, and the count or rows removed
+    """
+    fin = open(infile)
+    count_total = 0
+    count_bad = 0
+
+    if fin:
+        fout = open(outfile, "w")
+        if header: fin.readine() # throw away header
+        for line in fin:
+            line = line[:-1] # remove \n
+            line = line.split(",")
+            if labels:
+                label = line[0] # save label
+                line = line[1:] # throw away labels
+            else:
+                label = "" # dummy label
+            
+            length = len(line)
+            good_line = True
+            
+            for i in range(length):
+                try:
+                    float(line[i])
+                except:
+                    good_line = False
+            
+            if not good_line:
+                count_bad += 1
+            else:
+                fout.write(label + "," + ",".join(line) + "\n")
+            count_total += 1
+                
+    return count_total, count_bad
+
+
 def normalize(data, np_array=False, scaled=False):
     """
     Normalize and optionally scale a dataset.
