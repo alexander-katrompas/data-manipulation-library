@@ -66,12 +66,14 @@ class Postproc:
         self.filename = filename
         self.data = [] # will become a numpy array
         self.sequenced_data = []
+        self.total_avp = 0
         self.nsequences = 0
         self.largest_sequence = 0
         self.smallest_sequence = 0
         self.mse = []
         self.marked = []
         self.tp = self.fp = self.tn = self.fn = -1
+        self.tp1 = self.fp1 = self.tn1 = self.fn1 = -1
         self.roc_auc = 0 # need to call graph_roc to set
         self.pr_auc = 0 # need to call graph_pr to set
         
@@ -86,7 +88,7 @@ class Postproc:
         else:
             self.loaded = False
 
-
+        
     def get_tp(self, printit=False):
         """
         Returns or prints true positives.
@@ -235,6 +237,7 @@ class Postproc:
         Return: none
         """
         if self.loaded:
+            print("Total AvP:", self.total_avp)
             print("Total Sequences:", self.nsequences)
             print("Largest Sequence:", self.largest_sequence)
             print("Smallest Sequence:", self.smallest_sequence)
@@ -243,8 +246,9 @@ class Postproc:
                 self.dispaly_mse()
             else:
                 print("Average MSE: {:.3f}".format(self.get_avg_mse()))
-            self.display_confusion_matrix()
             print()
+            self.display_confusion_matrix()
+            self.display_seq_confusion_matrix()
         else:
             print("No data loaded.")
 
@@ -275,7 +279,35 @@ class Postproc:
         Processing: none (display function)
         Return: none
         """
+        print("=========AvP CONFUSION MATRIX=========")
+        print(" -------------------------------------")
+        print(" |{:>12}{:>12}{:>12}".format("C.MATRIX |", "Pos Pred |", "Neg Pred |"))
+        print(" -------------------------------------")
+        print(" |{:>12}{:>12}{:>12}".format("Pos Class |", str(self.tp1) + "    |", str(self.fn1) + "    |"))
+        print(" -------------------------------------")
+        print(" |{:>12}{:>12}{:>12}".format("Neg Class |", str(self.fp1) + "    |", str(self.tn1) + "    |"))
+        print(" -------------------------------------")
+        total = self.tp1 + self.fp1 + self.fn1 + self.tn1
+        if self.total_avp == total:
+            match = "yes"
+        else:
+            match = "no"
+        print("    |tp|fn|    Total AvP: {}".format(self.total_avp))
+        print("    |-----|    Total Cases: {}".format(total))
+        print("    |fp|tn|    Match: {}".format(match))
         print()
+
+    
+    def display_seq_confusion_matrix(self):
+        """
+        Display the confusion matrix
+        
+        Parameters: none
+                    
+        Processing: none (display function)
+        Return: none
+        """
+        print("======SEQUENCE CONFUSION MATRIX=======")
         print(" -------------------------------------")
         print(" |{:>12}{:>12}{:>12}".format("C.MATRIX |", "Pos Pred |", "Neg Pred |"))
         print(" -------------------------------------")
@@ -467,11 +499,12 @@ class Postproc:
         
         self.nsequences = len(self.sequenced_data)
         self.marked = [0] * self.nsequences
+
+        self.data = np.array(self.data)
         self.__set_info()
         
         fin.close()
-        
-        self.data = np.array(self.data)
+
 
     def __set_info(self):
         """
@@ -483,6 +516,7 @@ class Postproc:
         """
         self.nsequences = len(self.sequenced_data)
         
+        self.total_avp = len(self.data)
         maxs = len(self.sequenced_data[0])
         mins = len(self.sequenced_data[0])
         for sequence in self.sequenced_data:
@@ -495,6 +529,7 @@ class Postproc:
         self.smallest_sequence = mins
         self.__calc_mse()
         self.__calc_matrix()
+        self.__calc_matrix_seq()
 
 
     def __calc_mse(self):
@@ -511,7 +546,30 @@ class Postproc:
             s = s.transpose()
             self.mse.append(np.mean((s[0] - s[1]) ** 2))
 
+
     def __calc_matrix(self):
+        """
+        Calculate a confusion matrix based on 1 for 1 actual versus predicted
+        
+        Parameters: none
+                    
+        Processing: Calculate a confusion matrix based on 1 for 1
+                    actual versus predicted
+        Return: none
+        """
+        self.tp1 = self.tn1 = self.fp1 = self.fn1 = 0
+    
+        for pair in self.data:
+            if pair[0] == 0 and pair[1] < self.DEFAULT_THRESHHOLD:
+                self.tn1 += 1
+            elif pair[0] == 0 and pair[1] > self.DEFAULT_THRESHHOLD:
+                self.fn1 += 1
+            elif pair[0] == 1 and pair[1] > self.DEFAULT_THRESHHOLD:
+                self.tp1 += 1
+            elif pair[0] == 1 and pair[1] < self.DEFAULT_THRESHHOLD:
+                self.fp1 += 1
+    
+    def __calc_matrix_seq(self):
         """
         Calculate a confusion matrix based on sequences
         
