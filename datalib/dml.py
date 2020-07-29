@@ -10,6 +10,7 @@ For use with machine learning and data science applications.
 from dtl import DataType
 import numpy as np
 import pandas as pd
+import random
 np.set_printoptions(precision=4, floatmode="fixed")
 
 DEFAULT_TRAIN_PCT = 80.0
@@ -20,19 +21,92 @@ DEFAULT_TRAIN_PCT = 80.0
 # in some way and return the manipulated data
 # #############################################
 
-def remove_bad_data(infile, outfile, labels=False, header=False):
+# ####################################################
+# WARNING: Function not well tested, but seems to work
+# ####################################################
+def extract_features(infile, outfile, cols, y=0, index=False):
     """
-    Remove rows with missing or invalid numeric values.
+    Extract columns from a csv data file.
     
     Parameters: input file name, output file name
-                optional flags to indicate the presence of headers and labels
+                cols as either a list of relevant columns to extract or a
+                number of columns to extract randomly
+                y as the number of cols at the end of the row to preserve regardless
+                optional flags to indicate the presence of an index to preserve
+    Processing: Will extract the columns specified, preserving the index if indicated,
+                and keeping the last y columns if indicated
+    Return: a count of rows processed
+    """
+    try:
+        fin = open(infile, "r")
+    except FileNotFoundError:
+        fin = None
+        #print("file not found: ", infile)
+    rows = 0
+    
+    cols_type = type(cols)
+    if fin and ((cols_type == type([]) and len(cols) > 0) or (cols_type == type(0) and cols > 0)):
+        fout = open(outfile, "w")
+
+        # get number of columns
+        line = fin.readline()
+        ncols = len(line.split(","))
+        fin.seek(0)
+
+        # if random number of columns, set which cols to extract
+        if cols_type == type(0):
+            if index: start = 1
+            else: start = 0
+            cols = random.sample(range(start, (ncols + 1)-y), cols)
+        # now cols is a list no matter what
+        
+        # fix y if needed
+        if type(y) != type(0) or y >= ncols: y = 0
+        # now have a good y and good cols list
+        
+        # fix index if needed
+        if type(index) != type(True): index = False
+        # now have a good y and good cols list and good index flag
+        
+        for line in fin:
+            line = line[:-1] # remove \n
+            line = line.split(",")
+            new_line = []
+            
+            # add index if present
+            if index: new_line.append(line[0])
+            
+            # add list of columns to extract
+            for i in range(len(cols)):
+                new_line.append(line[cols[i]])
+            
+            # add output
+            for i in range(ncols-y, ncols):
+                new_line.append(line[i])
+
+            fout.write(",".join(new_line) + "\n")
+            rows += 1
+
+    return rows
+
+def remove_bad_data(infile, outfile, index=False, header=False):
+    """
+    Remove rows with missing or invalid numeric values on csv file.
+    
+    Parameters: input file name, output file name
+                optional flags to indicate the presence of headers and index
     Processing: Will remove rows that contain a non-numeric value and place the
                 processed data into outfile.
     Return: a count of the total rows, and the count or rows removed
     """
-    fin = open(infile)
     count_total = 0
     count_bad = 0
+    
+    try:
+        fin = open(infile, "r")
+    except FileNotFoundError:
+        fin = None
+        print("file not found: ", infile)
 
     if fin:
         fout = open(outfile, "w")
@@ -40,9 +114,9 @@ def remove_bad_data(infile, outfile, labels=False, header=False):
         for line in fin:
             line = line[:-1] # remove \n
             line = line.split(",")
-            if labels:
+            if index:
                 label = line[0] # save label
-                line = line[1:] # throw away labels
+                line = line[1:] # throw away index
             else:
                 label = "" # dummy label
             
