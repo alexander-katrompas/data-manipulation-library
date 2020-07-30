@@ -15,7 +15,6 @@ from sklearn.metrics import auc
 
 class Postproc:
     
-    
     ###############################
     # Constructor
     ###############################
@@ -34,7 +33,7 @@ class Postproc:
         self.FP = 2
         self.TN = 3
         self.FN = 4
-
+        
         self.load_data(filename, delim=",")
 
 
@@ -442,7 +441,7 @@ class Postproc:
                     goodlines += 1
 
         fin.close()
-                
+
         if lines == goodlines and len(classes) == 2:
             return lines
         else:
