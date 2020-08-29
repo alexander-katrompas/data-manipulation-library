@@ -296,6 +296,12 @@ class Postproc:
         print("    |fp|tn|    Match: {}".format(match))
         print()
 
+        print("Accuracy:", (self.tp1 + self.tn1) / total)
+        print("Precision:", self.tp1 / (self.tp1 + self.fp1))
+        print("Recall:", self.tp1 / (self.tp1 + self.fn1))
+
+        print()
+
     
     def display_seq_confusion_matrix(self):
         """
@@ -322,6 +328,12 @@ class Postproc:
         print("    |tp|fn|    Total Sequences: {}".format(self.nsequences))
         print("    |-----|    Total Cases: {}".format(total_cases))
         print("    |fp|tn|    Match: {}".format(match))
+        print()
+
+        print("Accuracy:", (self.tp + self.tn) / total_cases)
+        print("Precision:", self.tp / (self.tp + self.fp))
+        print("Recall:", self.tp / (self.tp + self.fn))
+
         print()
     
     
@@ -395,7 +407,7 @@ class Postproc:
         # calculate model precision-recall curve
         precision, recall, _ = precision_recall_curve(y, yhat)
         # plot the model precision-recall curve
-        pyplot.plot(recall, precision, marker='.', label='Logistic')
+        pyplot.plot(recall, precision, marker='.', label='Model')
         # axis labels
         pyplot.xlabel('Recall')
         pyplot.ylabel('Precision')
