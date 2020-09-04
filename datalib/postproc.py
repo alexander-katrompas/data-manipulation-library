@@ -296,10 +296,17 @@ class Postproc:
         print("    |fp|tn|    Match: {}".format(match))
         print()
 
-        print("Accuracy:", (self.tp1 + self.tn1) / total)
-        print("Precision:", self.tp1 / (self.tp1 + self.fp1))
-        print("Recall:", self.tp1 / (self.tp1 + self.fn1))
+        accuracy = (self.tp1 + self.tn1) / total
+        print("Accuracy:", accuracy)
+        
+        precision = self.tp1 / (self.tp1 + self.fp1)
+        print("Precision:", precision)
+        
+        recall = self.tp1 / (self.tp1 + self.fn1)
+        print("Recall:", recall)
 
+        f1 = 2 * (recall * precision) / (recall + precision)
+        print("F1:", f1)
         print()
 
     
@@ -330,10 +337,17 @@ class Postproc:
         print("    |fp|tn|    Match: {}".format(match))
         print()
 
-        print("Accuracy:", (self.tp + self.tn) / total_cases)
-        print("Precision:", self.tp / (self.tp + self.fp))
-        print("Recall:", self.tp / (self.tp + self.fn))
+        accuracy = (self.tp + self.tn) / total_cases
+        print("Accuracy:", accuracy)
+        
+        precision = self.tp / (self.tp + self.fp)
+        print("Precision:", precision)
+        
+        recall = self.tp / (self.tp + self.fn)
+        print("Recall:", recall)
 
+        f1 = 2 * (recall * precision) / (recall + precision)
+        print("F1:", f1)
         print()
     
     
