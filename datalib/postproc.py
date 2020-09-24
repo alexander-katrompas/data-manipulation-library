@@ -340,13 +340,25 @@ class Postproc:
         accuracy = (self.tp + self.tn) / total_cases
         print("Accuracy:", accuracy)
         
-        precision = self.tp / (self.tp + self.fp)
+        div = (self.tp + self.fp)
+        if div != 0:
+            precision = self.tp / (self.tp + self.fp)
+        else:
+            precision = 0
         print("Precision:", precision)
         
-        recall = self.tp / (self.tp + self.fn)
+        div = (self.tp + self.fn)
+        if div != 0:
+            recall = self.tp / (self.tp + self.fn)
+        else:
+            recall = 0
         print("Recall:", recall)
 
-        f1 = 2 * (recall * precision) / (recall + precision)
+        div = (recall + precision)
+        if div != 0:
+            f1 = 2 * (recall * precision) / (recall + precision)
+        else:
+            f1 = 0
         print("F1:", f1)
         print()
     
