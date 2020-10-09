@@ -226,7 +226,7 @@ class Postproc:
             print("No data loaded.")
 
 
-    def display_info(self, mse=True):
+    def display_info(self, mse=True, seq=True):
         """
         Display all stats
         
@@ -247,7 +247,8 @@ class Postproc:
                 print("Average MSE: {:.3f}".format(self.get_avg_mse()))
             print()
             self.display_confusion_matrix()
-            self.display_seq_confusion_matrix()
+            if seq:
+                self.display_seq_confusion_matrix()
         else:
             print("No data loaded.")
 
@@ -299,13 +300,25 @@ class Postproc:
         accuracy = (self.tp1 + self.tn1) / total
         print("Accuracy:", accuracy)
         
-        precision = self.tp1 / (self.tp1 + self.fp1)
+        div = (self.tp1 + self.fp1)
+        if div:
+            precision = self.tp1 / div
+        else:
+            precision = 0
         print("Precision:", precision)
         
-        recall = self.tp1 / (self.tp1 + self.fn1)
+        div = (self.tp1 + self.fn1)
+        if div:
+            recall = self.tp1 / div
+        else:
+            recall = 0
         print("Recall:", recall)
 
-        f1 = 2 * (recall * precision) / (recall + precision)
+        div = (recall + precision)
+        if div:
+            f1 = 2 * (recall * precision) / div
+        else:
+            f1 = 0
         print("F1:", f1)
         print()
 
