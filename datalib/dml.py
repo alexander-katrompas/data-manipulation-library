@@ -177,7 +177,7 @@ def normalize(data, np_array=False, scaled=False):
     
     return data
 
-def getio(data, x_cols):
+def getio(data, x_cols, np_array=False):
     """
     Slice a dataset into input and output features based on the last x_cols
     
@@ -200,6 +200,12 @@ def getio(data, x_cols):
         # right of the , ommitting start and including number of columns
         X = data.iloc[:,:x_cols]
         Y = data.iloc[:, x_cols:]
+        
+    if np_array and \
+        (detect_datatype(X) == DataType.DATAFRAME and detect_datatype(Y) == DataType.DATAFRAME):
+        X = X.to_numpy()
+        Y = Y.to_numpy()
+        
 
     return X, Y
 
